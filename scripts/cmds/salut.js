@@ -38,7 +38,7 @@ module.exports ={
   "Coucou 🎉 ! Tu illumines ma journée."
 ]
       const randomReponseFr = Math.floor(Math.random()* reponseFr.length)
-api.setMessageReaction("🔮",event.messageID, () => {}, true)
+api.setMessageReaction("👋",event.messageID, () => {}, true)
       return message.reply(reponseFr[randomReponseFr])
     }
     
