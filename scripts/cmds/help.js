@@ -69,7 +69,7 @@ module.exports = {
       categories[category].push(name);
     }
 
-    const helpListImages = ["http://goatbiin.onrender.com/AaRMu1TmJ.gif"];
+    const helpListImages = ["http://goatbiin.onrender.com/DEfe420pJ.jpg"];
     const helpListImage = helpListImages[Math.floor(Math.random() * helpListImages.length)];
 
     const rawInput = args.join(" ").trim();
@@ -150,4 +150,4 @@ function roleTextToString(role) {
     case 2: return "Bot Admins";
     default: return "Unknown";
   }
-	  }
+	}
