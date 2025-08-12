@@ -4,150 +4,110 @@ const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
 
-// Simple fuzzy search for suggestion
-function getClosestCommand(name) {
-  const lowerName = name.toLowerCase();
-  let closest = null;
-  let minDist = Infinity;
-
-  for (const cmdName of commands.keys()) {
-    const dist = levenshteinDistance(lowerName, cmdName.toLowerCase());
-    if (dist < minDist) {
-      minDist = dist;
-      closest = cmdName;
-    }
-  }
-  if (minDist <= 3) return closest;
-  return null;
-}
-
-// Levenshtein distance function (edit distance)
-function levenshteinDistance(a, b) {
-  const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
-
-  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
-  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
-
-  for (let j = 1; j <= b.length; j++) {
-    for (let i = 1; i <= a.length; i++) {
-      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1,      // deletion
-        matrix[j - 1][i] + 1,      // insertion
-        matrix[j - 1][i - 1] + indicator // substitution
-      );
-    }
-  }
-  return matrix[b.length][a.length];
-}
-
 module.exports = {
   config: {
     name: "help",
-    version: "1.24",
-    author: "和.ꜛටිOMBRA く愛 ",
+    aliases: ["aide", "menu"],
+    version: "2.0",
+    author: "🏌️",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "View command usage and list all commands directly" },
-    longDescription: { en: "View command usage and list all commands directly" },
+    shortDescription: {
+      en: "Display help and usage",
+      fr: "Affiche la liste des commandes"
+    },
+    longDescription: {
+      en: "List all commands or get help for a specific one",
+      fr: "Affiche la liste de toutes les commandes ou l'aide d'une commande spécifique"
+    },
     category: "info",
-    guide: { en: "{pn} / help [category] or help commandName" },
-    priority: 1,
+    guide: {
+      en: "{pn} / help <command>\n{pn} -c <category>",
+      fr: "{pn} / help <commande>\n{pn} -c <catégorie>"
+    }
   },
 
-  onStart: async function ({ message, args, event, role }) {
+  onStart: async function ({ message, args, event, threadsData, role }) {
     const { threadID } = event;
+    const threadData = await threadsData.get(threadID);
     const prefix = getPrefix(threadID);
-    const categories = {};
 
-    for (const [name, value] of commands) {
-      if (!value?.config || typeof value.onStart !== "function") continue;
-      if (value.config.role > 1 && role < value.config.role) continue;
+    if (args.length === 0) {
+      const categories = {};
+      let msg = "𝐀𝐋𝐘𝐀. 𝐂𝐌𝐃𝐒\n";
 
-      const category = value.config.category?.toLowerCase() || "uncategorized";
-      if (!categories[category]) categories[category] = [];
-      categories[category].push(name);
-    }
+      for (const [name, value] of commands) {
+        if (value.config.role > 1 && role < value.config.role) continue;
 
-    const helpListImages = ["http://goatbiin.onrender.com/DEfe420pJ.jpg"];
-    const helpListImage = helpListImages[Math.floor(Math.random() * helpListImages.length)];
-
-    const rawInput = args.join(" ").trim();
-
-    // Show full help list if no argument
-    if (!rawInput) {
-      let msg = "╔═══════════════╗\n";
-      msg += " 〄 𝗦𝗛𝗔𝗗𝗢𝗪 𝗖𝗠𝗗𝗦 𝄞\n";
-      msg += "╚═══════════════╝\n";
-
-      for (const category of Object.keys(categories).sort()) {
-        const cmdList = categories[category];
-        msg += `┍━━━[ ${category.toUpperCase()} ]\n`;
-
-        const sortedNames = cmdList.sort((a, b) => a.localeCompare(b));
-        for (const cmdName of sortedNames) {
-          msg += `┋〄 ${cmdName}\n`;
-        }
-
-        msg += "┕━━━━━━━━━━━━◊\n";
+        const category = value.config.category || "Autres";
+        if (!categories[category]) categories[category] = [];
+        categories[category].push(name);
       }
 
-      msg += "┍━━━[𝙸𝙽𝙵𝚁𝙾𝙼]━━━◊\n";
-      msg += `┋➥𝚃𝙾𝚃𝙰𝙻 𝙲𝙼𝙳: [${commands.size}]\n`;
-      msg += `┋➥𝙿𝚁𝙴𝙵𝙸𝚇: ${prefix}\n`;
-      msg += `┋𝙾𝚆𝙽𝙴𝚁: 和.ꜛටිOMBRA く愛 \n`;
-      msg += "┕━━━━━━━━━━━◊";
+      for (const cat of Object.keys(categories)) {
+        msg += `🍂✨\n${cat.toUpperCase()} ✨🍂\n`;
+        categories[cat].sort().forEach(cmd => {
+          msg += ` 🎊${cmd}🎊\n`;
+        });
+        msg += "\n";
+      }
+
+      const adminMentions = global.GoatBot.config.adminBot.map(id => ({ id, tag: `@admin` }));
+      const adminTags = adminMentions.map(ad => `• ${ad.tag} (${ad.id})`).join("\n");
+
+      msg += `🤖| ᎯᏝᎽᎯ 𝐝𝐢𝐬𝐩𝐨𝐬𝐞 𝐚𝐜𝐭𝐮𝐞𝐥𝐥𝐞𝐦𝐞𝐧𝐭 𝐝𝐞 🍂${commands.size}🍂 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐞𝐬 𝐝𝐢𝐬𝐩𝐨𝐧𝐢𝐛𝐥𝐞𝐬.\n`;
+      msg += `⚙️|𝐒𝐚𝐢𝐬𝐢𝐬 ${prefix}𝐡𝐞𝐥𝐩 𝐬𝐮𝐢𝐯𝐢 𝐝𝐮 𝐧𝐨𝐦 𝐝𝐞 𝐥𝐚 𝐜𝐦𝐝 𝐩𝐨𝐮𝐫 𝐩𝐥𝐮𝐬 𝐝𝐞 𝐝𝐞𝐭𝐚𝐢𝐥𝐬 𝐬𝐮𝐫 𝐥𝐚 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐞.\n`;
+      msg += `\n\n🤖 ᏰᎾᎿ  ᏁᎯᎷᎬ   : ᎯᏝᎽᎯ  ᏰᎾᎿ`;
+      msg += `\n👑 ᎯᎠᎷᎨᏁ  (Ꮥ)  ᏰᎾᎿ   :\n${adminTags}`;
+      msg += `\n\n𝐇𝐞𝐥𝐥𝐨 𝐥'𝐚𝐦𝐢 (𝐞) 👋 𝐫𝐞𝐣𝐨𝐢𝐧𝐬 𝐦𝐨𝐧 𝐠𝐫𝐨𝐮𝐩𝐞 𝐞𝐧 𝐮𝐭𝐢𝐥𝐢𝐬𝐚𝐧𝐭 𝐥𝐚 𝐜𝐦𝐝 ${prefix}𝐚𝐥𝐲𝐚𝐠𝐜. `;
 
       return message.reply({
         body: msg,
-        attachment: await global.utils.getStreamFromURL(helpListImage),
+        mentions: adminMentions
       });
     }
 
-    // Show command info for specific command
-    const commandName = rawInput.toLowerCase();
-    const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+    // Affichage par catégorie
+    if (args[0] === "-c") {
+      if (!args[1]) return message.reply("❌ Spécifie une catégorie.");
+      const categoryName = args[1].toLowerCase();
 
-    if (!command || !command?.config) {
-      // Suggest closest command if any
-      const suggestion = getClosestCommand(commandName);
-      if (suggestion) {
-        return message.reply(`❌ Command "${commandName}" khuje paoya jay nai.\n👉 Did you mean: "${suggestion}"?`);
-      } else {
-        return message.reply(`❌ Command "${commandName}" khuje paoya jay nai.\nTry: /help or /help [category]`);
-      }
+      const filtered = Array.from(commands.values()).filter(cmd =>
+        cmd.config.category?.toLowerCase() === categoryName
+      );
+
+      if (filtered.length === 0) return message.reply(`❌ Aucune commande trouvée dans "${categoryName}".`);
+
+      let msg = `╔══════════════╗\n📂 CATÉGORIE : ${categoryName.toUpperCase()}\n╚══════════════╝\n`;
+      filtered.forEach(cmd => msg += `✯ ${cmd.config.name}\n`);
+
+      return message.reply(msg);
     }
 
-    const configCommand = command.config;
-    const roleText = roleTextToString(configCommand.role);
-    const author = configCommand.author || "Unknown";
-    const longDescription = configCommand.longDescription?.en || "No description available.";
-    const guideBody = configCommand.guide?.en || "No guide available.";
-    const usage = guideBody.replace(/{pn}/g, `${prefix}${configCommand.name}`);
+    // Aide sur une commande spécifique
+    const name = args[0].toLowerCase();
+    const command = commands.get(name) || commands.get(aliases.get(name));
 
-    const msg = `
-╔══ [𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢] ══╗
-┋🧩 Name       : ${configCommand.name}
-┋🗂️ Category   : ${configCommand.category || "Uncategorized"}
-┋📜 Description: ${longDescription}
-┋🔁 Aliases    : None
-┋⚙️ Version    : ${configCommand.version || "1.0"}
-┋🔐 Permission : ${configCommand.role} (${roleText})
-┋⏱️ Cooldown   : ${configCommand.countDown || 5}s
-┋👑 Author     : ${author}
-┋📖 Usage      : ${usage}
-╚════════════════════╝`;
+    if (!command) return message.reply(`❌ La commande "${name}" est introuvable.`);
+
+    const config = command.config;
+    const roleMap = {
+      0: "Tous les utilisateurs",
+      1: "Admins du groupe",
+      2: "Admins du bot"
+    };
+
+    let msg = `╭──── ${config.name.toUpperCase()} ────⭓\n`;
+    msg += `│ 📄 Description : ${config.longDescription?.fr || "Aucune"}\n`;
+    msg += `│ 📁 Catégorie : ${config.category || "Autres"}\n`;
+    msg += `│ 🧑 Auteur : ${config.author || "Inconnu"}\n`;
+    msg += `│ 🆔 Nom(s) alternatif(s) : ${config.aliases?.join(", ") || "Aucun"}\n`;
+    msg += `│ 🕒 Cooldown : ${config.countDown || 1}s\n`;
+    msg += `│ 🔐 Accès : ${roleMap[config.role] || "Inconnu"}\n`;
+    msg += `├──── 🧭 UTILISATION ────\n`;
+    msg += `│ ${config.guide?.fr?.replace(/{pn}/g, prefix + config.name) || "Non défini"}\n`;
+    msg += `╰───────────────⭓`;
 
     return message.reply(msg);
-  },
-};
-
-// Helper to convert role number to text
-function roleTextToString(role) {
-  switch (role) {
-    case 0: return "All users";
-    case 1: return "Group Admins";
-    case 2: return "Bot Admins";
-    default: return "Unknown";
   }
-	}
+};
