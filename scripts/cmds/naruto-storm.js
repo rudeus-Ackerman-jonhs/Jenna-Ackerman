@@ -1,5 +1,3 @@
-📄 | Source code of "naruto-storm.js":
-
 const characters = [
   {
     name: "Naruto Uzumaki",
@@ -249,4 +247,5 @@ const characters = [
   },
   {
     name: "Ay (Raikage)",
-    p
+    power: 66,
+    basic: "Coup Raikage ⚡",
