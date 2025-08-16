@@ -5,7 +5,7 @@ const fs = require("fs-extra");
 module.exports = {
   config: {
     name: "pair",
-    aurthor:"xemon",
+    aurthor:"𝐫𝐮𝐝𝐞𝐮𝐬 𝐚𝐜𝐤𝐞𝐫𝐦𝐚𝐧",
      role: 0,
     shortDescription: " ",
     longDescription: "",
@@ -92,7 +92,7 @@ module.exports = {
     fs.removeSync(pathAvt2);
     return api.sendMessage(
       {
-        body: `🥰Successful pairing! ${name1}\💌Wish you two hundred years of happiness💕${name2}.\—The odds are ${tile}%`,
+        body: `🥰Successful pairing! ${name1}\💌 𝐣𝐞 𝐯𝐨𝐮𝐬 𝐬𝐨𝐮𝐡𝐚𝐢𝐭𝐞𝐬 𝐝'𝐚𝐯𝐨𝐢𝐫 15 𝐞𝐧𝐟𝐚𝐧𝐭𝐬 🥴${name2}.\—🙍‍♂️🙍‍♂️🙍‍♂️ ${tile}%`,
         mentions: [
           {
             tag: `${name2}`,
