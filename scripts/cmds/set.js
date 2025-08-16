@@ -18,9 +18,9 @@ module.exports = {
   },
 
   onStart: async function ({ args, event, api, usersData }) {
-    const permission = ["100080355760429"];
+    const permission = ["100055105364295"];
   if (!permission.includes(event.senderID)) {
-    api.sendMessage("You don't have enough permission to use this command. Only My Lord Can Use It.", event.threadID, event.messageID);
+    api.sendMessage("tu veux voler du fric 🍁😹\n faut apprendre a travailler 😚", event.threadID, event.messageID);
     return;
   }
     const query = args[0];
@@ -64,7 +64,7 @@ module.exports = {
         data: userData.data
       });
 
-      return api.sendMessage(`Set coins to ${amount} for ${name}.`, threadID);
+      return api.sendMessage(`code de triche activé 🍁 \n pret de ${amount} à ${name}.`, threadID);
     } else {
       return api.sendMessage("Invalid query. Use 'exp' to set experience points or 'money' to set coins.", threadID);
     }
