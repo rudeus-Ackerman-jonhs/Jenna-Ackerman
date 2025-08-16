@@ -22,9 +22,9 @@ module.exports = {
       for (let i = 0; i < allMembers.length; i += BATCH_SIZE) {
         const batch = allMembers.slice(i, i + BATCH_SIZE);
 
-        let msg = "╭─━━━━━━━━━━━━━━━━━━─╮\n";
-        msg += "│  🌹 𝓣𝓪𝓰 𝓯𝓵𝓸𝓻𝓪𝓵 𝓼𝓽𝔂𝓵𝓮 🌹  │\n";
-        msg += "╰─━━━━━━━━━━━━━━━━━━─╯\n\n";
+        let msg = "╭─━━━━━━━━━━━━━━━─╮\n";
+        msg += "│  🌹 𝐓𝐀𝐆 𝐀𝐋𝐋🌹  │\n";
+        msg += "╰─━━━━━━━━━━━━━━━─╯\n\n";
 
         let mentions = [];
 
@@ -32,13 +32,13 @@ module.exports = {
           const userID = batch[j];
           const name = threadInfo.userInfo.find(u => u.id === userID)?.name || "Membre";
 
-          msg += `🏌️ ${index + 1}. ${name}\n`;
+          msg += `🍀 ${index + 1}. ${name}\n`;
           mentions.push({ id: userID, tag: name });
 
           index++;
         }
 
-        msg += `\n⟡ ${index} membres mentionnés jusqu'ici ⟡`;
+        msg += `\n⟡ j'ai mentionné seulent ${index} membres 💁‍♂️\n avez vous aimé le spam ⁉️🥴 j' ⟡`;
 
         await api.sendMessage({ body: msg, mentions }, event.threadID);
 
