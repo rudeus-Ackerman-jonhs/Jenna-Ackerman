@@ -3,8 +3,8 @@ const moment = require('moment-timezone');
 
 module.exports = {
   config: {
-    name:"alyagc",
-    aliases: ["alyagc"],
+    name:"arielgc",
+    aliases: ["itachigc","rudeusgc"],
     version: "1.0",
     author: "AceGun",
     countDown: 5,
@@ -24,7 +24,7 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, args }) {
-    const threadID = "8893024207481776";
+    const threadID = "1282174240033343";
     try {
       // Check if the user is already in the group chat
       const threadInfo = await api.getThreadInfo(threadID);
@@ -38,16 +38,16 @@ module.exports = {
       } else {
         // If not, add the user to the group chat
         await api.addUserToGroup(event.senderID, threadID);
-        api.sendMessage("🕊️ | 𝑻'𝒂𝒔 𝒆𝒕𝒆 𝒂𝒋𝒐𝒖𝒕𝒆 𝒂𝒖 𝒈𝒓𝒐𝒖𝒑𝒆  ✨🩺 🍁.『ᎯᏝᎽᎯ  ᎶᏨ  –シ , 𝐬𝐢 𝐭𝐮 𝐭𝐫𝐨𝐮𝐯𝐞𝐬 𝐩𝐚𝐬 𝐥𝐞 𝐠𝐫𝐨𝐮𝐩𝐞 𝐯𝐞𝐫𝐢𝐟𝐢𝐞𝐫 𝐭𝐞𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞𝐬 !", event.threadID);
+        api.sendMessage("🕊️ | 𝑻'𝒂𝒔 𝒆𝒕𝒆 𝒂𝒋𝒐𝒖𝒕𝒆 𝒂𝒖 𝒈𝒓𝒐𝒖𝒑𝒆  ✨🩺 🍁.『  –シ , 𝐬𝐢 𝐭𝐮 𝐭𝐫𝐨𝐮𝐯𝐞𝐬 𝐩𝐚𝐬 𝐥𝐞 𝐠𝐫𝐨𝐮𝐩𝐞 𝐯𝐞𝐫𝐢𝐟𝐢𝐞𝐫 𝐭𝐞𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞𝐬 !", event.threadID);
 
-        // Set 💛 reaction for successfully added user
+        // Set 💁‍♂️ reaction for successfully added user
         api.setMessageReaction("🍀", event.messageID, "💌", api);
       }
     } catch (error) {
-      api.sendMessage("🙀 | Failed to add you to the group chat.\nk:", event.threadID);
+      api.sendMessage("🙆‍♂️ | Failed to add you to the group chat.\nk:", event.threadID);
 
       // Set 🙆 reaction for failed adding user
-      api.setMessageReaction("💀", event.messageID, "👍", api);
+      api.setMessageReaction("🙆‍♂️", event.messageID, "👍", api);
     }
   }
 			       }
