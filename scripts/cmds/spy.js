@@ -86,7 +86,7 @@ module.exports = {
 👶 𝗕𝗮𝗯𝘆 𝗧𝗲𝗮𝗰𝗵: ${babyTeach}
 ╰─────────────╯
 
-✨ 𝘉𝘰𝘵 𝘣𝘺: ✗.𝙇'𝙊𝙈𝘽𝙍𝙀 𝘿𝙀𝙈𝙊𝙉–シ`.trim();
+✨ 𝘉𝘰𝘵 𝘣𝘺 RUDEUS ACKERMAN`.trim();
 
  // Generate banner via Popcat API
  const bannerUrl = `https://api.popcat.xyz/welcomecard` +
