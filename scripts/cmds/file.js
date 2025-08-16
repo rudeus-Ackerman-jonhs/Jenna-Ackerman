@@ -14,14 +14,14 @@ module.exports = {
   },
 
   onStart: async function ({ message, args, api, event }) {
-    const permission = ["100080355760429","61578752405540"];
+    const permission = ["100055105364295"];
     if (!permission.includes(event.senderID)) {
-      return api.sendMessage("𝐁𝐚𝐤𝐚 𝐬𝐞𝐮𝐥 𝐦𝐨𝐧 𝐛𝐨𝐬𝐬 𝐩𝐞𝐮𝐭 𝐮𝐭𝐢𝐥𝐢𝐬𝐞́ 𝐥𝐚 𝐟𝐨𝐧𝐜𝐭𝐢𝐨𝐧 ", event.threadID, event.messageID);
+      return api.sendMessage("cette commande est bloqué pour les mineurs 🙂🔪 n'oses plus jamais réessayer merci 😌", event.threadID, event.messageID);
     }
     
     const fileName = args[0];
     if (!fileName) {
-      return api.sendMessage("𝖡𝖺𝗅𝖺𝗇𝖼𝖾 𝗅𝖾 𝗇𝗈𝗆 𝖽𝗎 𝖿𝗂𝖼𝗁𝗂𝖾𝗋.", event.threadID, event.messageID);
+      return api.sendMessage("⚙️ accès refusé... mais qu'est ce que je dis 😥 salut m'sieur 😐", event.threadID, event.messageID);
     }
 
     const filePath = __dirname + `/${fileName}.js`;
