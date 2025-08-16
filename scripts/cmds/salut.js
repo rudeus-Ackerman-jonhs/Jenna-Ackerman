@@ -1,9 +1,9 @@
 module.exports ={
   config: {
     name:"salut",
-    aliases: ["hey","hi","hello","bonjour"],
+    aliases: ["hey","hi","hello","bonjour","cc","salut"],
     version: "1.0",
-    author:"😐🇨🇩",
+    author:"rudeus",
     countDown: 5,
     role: 0,
     shorDescription: "repondre aux salutations",
@@ -67,7 +67,7 @@ api.setMessageReaction("👋",event.messageID, () => {}, true)
   "Hey 🎉! You made my day brighter."
 ]
 
-     api.setMessageReaction("🎉",event.messageID, ()=>{}, true)
+     api.setMessageReaction("🍁",event.messageID, ()=>{}, true)
      
         const randomReponseEn = Math.floor(Math.random()* reponseEn.length);
         return message.reply(reponseEn[randomReponseEn]);
