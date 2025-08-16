@@ -1,7 +1,7 @@
  module.exports = {
 	config: {
 		name: "balance",
-		aliases: ["bal"],
+		aliases: ["bal,balance"],
 		version: "1.2",
 		author: "NTKhang",
 		countDown: 5,
@@ -25,7 +25,7 @@
 			moneyOf: "%1 đang có %2$"
 		},
 		en: {
-			money: "유𝘽𝘼𝙇𝘼𝙉𝘾𝙀 ✗𝘼𝙇𝙔𝘼–シ\n══━━━━✥◈✥━━━━══\n💁‍♂️| 𝐓'𝐚𝐬  𝐮𝐧𝐞 𝐬𝐨𝐦𝐦𝐞 𝐝𝐞  %1€ 𝐝𝐚𝐧𝐬 𝐭𝐚 𝐛𝐚𝐧𝐪𝐮𝐞 🏦\n══━━━━✥◈✥━━━━══",
+			money: "BALANCE ♎–シ\n══━━━━✥◈✥━━━━══\n💁‍♂️| 𝐓'𝐚𝐬  𝐮𝐧𝐞 𝐬𝐨𝐦𝐦𝐞 𝐝𝐞  %1€ 𝐝𝐚𝐧𝐬 𝐭𝐚 𝐛𝐚𝐧𝐪𝐮𝐞 🏦\n══━━━━✥◈✥━━━━══",
 			moneyOf: "%1 has %2€"
 		}
 	},
