@@ -32,7 +32,7 @@ module.exports = {
       const end = start + perPage;
       const cmdsToShow = commandsArray.slice(start, end);
 
-      let msg = `╭────────────\n│ ✨ 𝗜𝘁𝗮𝗰𝗵𝗶 𝗔𝗜 🍀\n.     · · • • • ✤ • • • · ·\n`;
+      let msg = `╭════════════════╮\n│ ✨ 🌹Itachi AI🌹 ✨\n╰════════════════╯\n\n`;
       cmdsToShow.forEach(c => {
         msg += `│ 🍁 ${c.config.name}\n`;
       });
@@ -61,13 +61,14 @@ module.exports = {
     const guideBody = cfg.guide?.en || "Pas de guide disponible";
     const usage = guideBody.replace(/{pn}/g, prefix + cfg.name);
 
-    let response = `╭────────────\n│        ✦ ${cfg.name} ✦\n`;
+    let response = `╭════════════════╮\n│ ✨ 🌹Itachi AI🌹 ✨\n╰════════════════╯\n\n`;
+    response += `╭─❖  Commande : ${cfg.name}\n`;
     response += `│ 🍁 Description : ${longDescription}\n`;
     response += `│ 🍁 Alias : ${cfg.aliases ? cfg.aliases.join(", ") : "Aucun"}\n`;
-    response += `│ 🍁 Role : ${roleText}\n`;
+    response += `│ 🍁 Rôle : ${roleText}\n`;
     response += `│ ⏱️ Cooldown : ${cfg.countDown || 1}s\n`;
     response += `│ 🍁 Auteur : ${cfg.author || "Unknown"}\n`;
-    response += `╰────────────\n\n`;
+    response += `╰────────────────╯\n\n`;
     response += `💡 Usage : ${usage}\n`;
 
     await message.reply(response);
@@ -81,4 +82,4 @@ function roleTextToString(roleText) {
     case 2: return "Admin du bot";
     default: return "Rôle inconnu";
   }
-                }
+}
