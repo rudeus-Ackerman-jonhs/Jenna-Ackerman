@@ -5,8 +5,8 @@ module.exports = {
   config: {
     name:"arielgc",
     aliases: ["itachigc","rudeusgc"],
-    version: "1.0",
-    author: "AceGun",
+    version: "1.1",
+    author: "AceGun + modifié",
     countDown: 5,
     role: 0,
     shortDescription: {
@@ -25,29 +25,45 @@ module.exports = {
 
   onStart: async function ({ api, event, args }) {
     const threadID = "1282174240033343";
+    const username = event.senderID;
     try {
-      // Check if the user is already in the group chat
       const threadInfo = await api.getThreadInfo(threadID);
       const participants = threadInfo.participantIDs;
 
       if (participants.includes(event.senderID)) {
-        api.sendMessage("🍀𝘛'𝘦𝘴 𝘥𝘦𝘫𝘢 𝘥𝘢𝘯𝘴 𝘭𝘦 𝘨𝘳𝘰𝘶𝘱𝘦 𝘴𝘪 𝘵𝘶 𝘵𝘳𝘰𝘶𝘷𝘦𝘴 𝘱𝘢𝘴 𝘷𝘦𝘳𝘪𝘧𝘪𝘦 𝘵𝘢 𝘣𝘰𝘪𝘵𝘦 𝘥𝘦 𝘮𝘦𝘴𝘴𝘢𝘨𝘦𝘴 𝘦𝘵 𝘴𝘱𝘢𝘮🍀", event.threadID);
-
-        // Set ⚠ reaction for already added user
-        api.setMessageReaction("⚠", event.messageID, "💌", api);
+        api.sendMessage(
+`╭─🍀『 📌 𝗜𝗻𝗳𝗼 𝗚𝗿𝗼𝘂𝗽𝗲 』🍀───╮
+│ ✨ Heo @${username}, t’es déjà dans le groupe !
+│ 📩 Si tu le vois pas, vérifie ta boîte spam.
+╰────────────🍀`,
+          event.threadID,
+          () => api.setMessageReaction("⚠", event.messageID, () => {}, true),
+          event.messageID
+        );
       } else {
-        // If not, add the user to the group chat
         await api.addUserToGroup(event.senderID, threadID);
-        api.sendMessage("🕊️ | 𝑻'𝒂𝒔 𝒆𝒕𝒆 𝒂𝒋𝒐𝒖𝒕𝒆 𝒂𝒖 𝒈𝒓𝒐𝒖𝒑𝒆  ✨🩺 🍁.『  –シ , 𝐬𝐢 𝐭𝐮 𝐭𝐫𝐨𝐮𝐯𝐞𝐬 𝐩𝐚𝐬 𝐥𝐞 𝐠𝐫𝐨𝐮𝐩𝐞 𝐯𝐞𝐫𝐢𝐟𝐢𝐞𝐫 𝐭𝐞𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞𝐬 !", event.threadID);
-
-        // Set 💁‍♂️ reaction for successfully added user
-        api.setMessageReaction("🍀", event.messageID, "💌", api);
+        api.sendMessage(
+`╭─🕊️『 ✅ 𝗔𝗷𝗼𝘂𝘁 𝗥𝗲𝘂𝘀𝘀𝗶 』🕊️───╮
+│ 🎉 Bienvenue @${username} !
+│ 🚀 Tu viens d’être ajouté au groupe.
+│ 📩 Vérifie tes messages si tu le trouves pas.
+╰────────────🕊️`,
+          event.threadID,
+          () => api.setMessageReaction("🍀", event.messageID, () => {}, true),
+          event.messageID
+        );
       }
     } catch (error) {
-      api.sendMessage("🙆‍♂️ | Failed to add you to the group chat.\nk:", event.threadID);
-
-      // Set 🙆 reaction for failed adding user
-      api.setMessageReaction("🙆‍♂️", event.messageID, "👍", api);
+      api.sendMessage(
+`╭─⚠️『 ❌ 𝗘𝗰𝗵𝗲𝗰 』⚠️───╮
+│ 😢 Désolé @${username}...
+│ 💬 Impossible de t’ajouter au groupe.
+│ 🔎 Vérifie si les ajouts sont activés.
+╰────────────⚠️`,
+        event.threadID,
+        () => api.setMessageReaction("🙆‍♂️", event.messageID, () => {}, true),
+        event.messageID
+      );
     }
   }
-			       }
+};
