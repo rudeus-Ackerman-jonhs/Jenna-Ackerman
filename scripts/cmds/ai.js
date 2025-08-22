@@ -9,6 +9,7 @@ const g = "https://orochiai.vercel.app/chat/clear";
 const h = d.join(__dirname, 'tmp');
 if (!c.existsSync(h)) c.mkdirSync(h);
 
+// 📂 Téléchargement fichiers (img, audio, vidéo)
 const i = async (j, k) => {
   const l = d.join(h, `${e()}.${k}`);
   const m = await a.get(j, { responseType: 'arraybuffer' });
@@ -16,6 +17,7 @@ const i = async (j, k) => {
   return l;
 };
 
+// ♻ Reset
 const n = async (o, p, q) => {
   o.setMessageReaction("♻", p.messageID, () => {}, true);
   try {
@@ -27,8 +29,25 @@ const n = async (o, p, q) => {
   }
 };
 
+// ✨ Conversion police
+const toCustomFont = (text) => {
+  const normalUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const normalLower = "abcdefghijklmnopqrstuvwxyz";
+
+  const fancyUpper = "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭"; // Gras bloc
+  const fancyLower = "𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳"; // Serif bold
+
+  return text.split("").map(ch => {
+    if (normalUpper.includes(ch)) return fancyUpper[normalUpper.indexOf(ch)];
+    if (normalLower.includes(ch)) return fancyLower[normalLower.indexOf(ch)];
+    return ch;
+  }).join("");
+};
+
+// 🤖 Traitement AI
 const s = async (t, u, v, w, x = false) => {
   const y = u.senderID;
+  const senderName = u.senderName || "Utilisateur";
   let z = v, A = null;
   t.setMessageReaction("⏳", u.messageID, () => {}, true);
 
@@ -56,13 +75,26 @@ const s = async (t, u, v, w, x = false) => {
   try {
     const F = await a.post(f, { uid: y, message: z, image_url: A }, { timeout: 45000 });
     const { reply: G, image_url: H, music_data: I, shotti_data: J } = F.data;
-    let K = G || '✅ AI Response:', L = [];
+    let answer = G || '✅ Réponse non disponible.';
+    let attachments = [];
 
-    if (H) try { L.push(c.createReadStream(await i(H, 'jpg'))); } catch { K += '\n🖼 Image failed.'; }
-    if (I?.downloadUrl) try { L.push(c.createReadStream(await i(I.downloadUrl, 'mp3'))); } catch { K += '\n🎵 Music failed.'; }
-    if (J?.videoUrl) try { L.push(c.createReadStream(await i(J.videoUrl, 'mp4'))); } catch { K += '\n🎬 Video failed.'; }
+    if (H) try { attachments.push(c.createReadStream(await i(H, 'jpg'))); } catch { answer += '\n🖼 Image failed.'; }
+    if (I?.downloadUrl) try { attachments.push(c.createReadStream(await i(I.downloadUrl, 'mp3'))); } catch { answer += '\n🎵 Music failed.'; }
+    if (J?.videoUrl) try { attachments.push(c.createReadStream(await i(J.videoUrl, 'mp4'))); } catch { answer += '\n🎬 Video failed.'; }
 
-    const M = await w.reply({ body: K, attachment: L.length > 0 ? L : undefined });
+    // 🎭 Mise en forme avec police personnalisée
+    const styledReply = `
+╭─⊙『 🍁${toCustomFont("Itachi AI")}🍁』
+│
+│ 🤷 ${toCustomFont(senderName)} : ${toCustomFont(z)}
+│
+│ 📝 ${toCustomFont("Itachi AI")} : ${toCustomFont(answer)}
+╰────────────⊙
+
+${toCustomFont("Hey tape la commande 🌸¥arielgc🌸 pour rejoindre notre communauté")}
+    `.trim();
+
+    const M = await w.reply({ body: styledReply, attachment: attachments.length > 0 ? attachments : undefined });
     global.GoatBot.onReply.set(M.messageID, { commandName: 'ai', messageID: M.messageID, author: y });
     t.setMessageReaction("✅", u.messageID, () => {}, true);
   } catch (N) {
@@ -80,18 +112,18 @@ module.exports = {
   config: {
     name: 'ai',
     aliases: [],
-    version: '1.0.0',
-    author: 'Aryan Chauhan',
+    version: '2.1.0',
+    author: 'Aryan Chauhan + Mod Itachi Style + Fonts',
     role: 0,
     category: 'ai',
-    longDescription: { en: 'AI chat, image gen, music/video, and reset' },
+    longDescription: { en: 'AI chat styled like Itachi with fancy fonts' },
     guide: {
       en: `
 .ai [your message]
 • 🤖 Chat, 🎨 Image, 🎵 Music, 🎬 Video
 • Reply to image/message for context
 • Reply or type "clear" to reset
-• Say: ai [msg] (no prefix needed)
+• Styled with custom fonts Itachi 🥷
       `
     }
   },
