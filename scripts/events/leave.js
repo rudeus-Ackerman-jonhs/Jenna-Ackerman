@@ -1,98 +1,97 @@
 const { getTime, drive } = global.utils;
 
 module.exports = {
-	config: {
-		name: "leave",
-		version: "1.4",
-		author: "NTKhang",
-		category: "events"
-	},
+  config: {
+    name: "leave",
+    version: "2.0",
+    author: "rudeus ackerman",
+    category: "events"
+  },
 
-	langs: {
-		vi: {
-			session1: "sáng",
-			session2: "trưa",
-			session3: "chiều",
-			session4: "tối",
-			leaveType1: "tự rời",
-			leaveType2: "bị kick",
-			defaultLeaveMessage: "{userName} đã {type} khỏi nhóm"
-		},
-		en: {
-			session1: "morning",
-			session2: "noon",
-			session3: "afternoon",
-			session4: "evening",
-			leaveType1: "𝗲𝘀𝘁 𝗲𝗺𝗽𝗼𝗿𝘁é 𝗽𝗮𝗿 𝗹𝗮 𝗱𝗶𝗮𝗿𝗿𝗵é ",
-			leaveType2: "𝗮 𝗲𝘁𝗲 𝗰𝗵𝗮𝘀𝘀é 𝗱𝘂 𝗴𝗿𝗼𝘂𝗽𝗲 𝗽𝗮𝗿 𝗰𝗮𝘂𝘀𝗲 𝗱'𝗶𝗻𝘂𝘁𝗶𝗹𝗶𝘁é 🥴",
-			defaultLeaveMessage: "🎀{userName}🎀 {type} \n \n 𝗹𝗮𝘁𝗵𝘂𝘂𝗺 🧍"
-		}
-	},
+  langs: {
+    en: {
+      session1: "matin",
+      session2: "midi",
+      session3: "après-midi",
+      session4: "soir",
+      // Messages quand l’utilisateur part de lui-même
+      leaveMessages: [
+        "💔 {userName} a quitté le navire… Il/elle n’a pas supporté nos bêtises et a sauté par-dessus bord ⛵🐟",
+        "🔥 {userName} a disparu, consumé par les flammes de l’oubli…",
+        "👻 {userName} est parti… mais son inutilité hantera encore ce groupe.",
+        "🪦 Nom : {userName}\nÂge : on s'en fout 🧑‍🦯\nCause : trop inutile, consumé par les flammes de l’enfer 🍁",
+        "🤡 {userName} n’a pas supporté nos blagues et a ragequit.\nAh… suspense, qui sera le prochain ? 👀"
+      ],
+      // Messages quand il est expulsé
+      kickMessages: [
+        "🚪 {userName} a été jeté dehors comme un sac poubelle 🗑️",
+        "🔥 Rituel terminé : {userName} a été sacrifié aux flammes 🔥",
+        "🪦 {userName} déclaré officiellement mort socialement, expulsion réussie ✅",
+        "⚰️ {userName} a été chassé du groupe… inutilité confirmée 🥴",
+        "🚫 {userName} expulsé pour inactivité chronique. RIP 👋"
+      ]
+    }
+  },
 
-	onStart: async ({ threadsData, message, event, api, usersData, getLang }) => {
-		if (event.logMessageType == "log:unsubscribe")
-			return async function () {
-				const { threadID } = event;
-				const threadData = await threadsData.get(threadID);
-				if (!threadData.settings.sendLeaveMessage)
-					return;
-				const { leftParticipantFbId } = event.logMessageData;
-				if (leftParticipantFbId == api.getCurrentUserID())
-					return;
-				const hours = getTime("HH");
+  onStart: async ({ threadsData, message, event, api, usersData, getLang }) => {
+    if (event.logMessageType == "log:unsubscribe") {
+      return async function () {
+        const { threadID } = event;
+        const threadData = await threadsData.get(threadID);
+        if (!threadData.settings.sendLeaveMessage) return;
 
-				const threadName = threadData.threadName;
-				const userName = await usersData.getName(leftParticipantFbId);
+        const { leftParticipantFbId } = event.logMessageData;
+        if (leftParticipantFbId == api.getCurrentUserID()) return;
 
-				// {userName}   : name of the user who left the group
-				// {type}       : type of the message (leave)
-				// {boxName}    : name of the box
-				// {threadName} : name of the box
-				// {time}       : time
-				// {session}    : session
+        const hours = getTime("HH");
+        const threadName = threadData.threadName;
+        const userName = await usersData.getName(leftParticipantFbId);
 
-				let { leaveMessage = getLang("defaultLeaveMessage") } = threadData.data;
-				const form = {
-					mentions: leaveMessage.match(/\{userNameTag\}/g) ? [{
-						tag: userName,
-						id: leftParticipantFbId
-					}] : null
-				};
+        // Détermine type : quitté ou kick
+        const leftBySelf = leftParticipantFbId == event.author;
+        const typeMessage = leftBySelf ? "a quitté le groupe" : "a été expulsé";
 
-				leaveMessage = leaveMessage
-					.replace(/\{userName\}|\{userNameTag\}/g, userName)
-					.replace(/\{type\}/g, leftParticipantFbId == event.author ? getLang("leaveType1") : getLang("leaveType2"))
-					.replace(/\{threadName\}|\{boxName\}/g, threadName)
-					.replace(/\{time\}/g, hours)
-					.replace(/\{session\}/g, hours <= 10 ?
-						getLang("session1") :
-						hours <= 12 ?
-							getLang("session2") :
-							hours <= 18 ?
-								getLang("session3") :
-								getLang("session4")
-					);
+        // Choix du message fun selon le type
+        const messagesList = leftBySelf ? getLang("leaveMessages") : getLang("kickMessages");
+        const funMessage = messagesList[Math.floor(Math.random() * messagesList.length)];
 
-				form.body = leaveMessage;
+        // Remplace les variables dynamiques dans funMessage
+        const funMsgParsed = funMessage.replace(/\{userName\}/g, userName);
 
-				if (leaveMessage.includes("{userNameTag}")) {
-					form.mentions = [{
-						id: leftParticipantFbId,
-						tag: userName
-					}];
-				}
+        // Détermine session
+        const session = hours <= 10 ? getLang("session1") :
+          hours <= 12 ? getLang("session2") :
+            hours <= 18 ? getLang("session3") : getLang("session4");
 
-				if (threadData.data.leaveAttachment) {
-					const files = threadData.data.leaveAttachment;
-					const attachments = files.reduce((acc, file) => {
-						acc.push(drive.getFile(file, "stream"));
-						return acc;
-					}, []);
-					form.attachment = (await Promise.allSettled(attachments))
-						.filter(({ status }) => status == "fulfilled")
-						.map(({ value }) => value);
-				}
-				message.send(form);
-			};
-	}
+        // Cadre final
+        const finalMessage = `
+╭───────────────
+│ ⚰️  Avis de décès du groupe ⚰️
+├───────────────
+│ 👤 Nom : ${userName}            
+│ 📌 Groupe : ${threadName}       
+│ 🕒 Heure : ${hours}h ${session}   
+│ 📜 Statut : ${typeMessage}      
+│                               
+│ ${funMsgParsed}                  
+╰───────────────
+        `;
+
+        const form = { body: finalMessage };
+
+        if (threadData.data.leaveAttachment) {
+          const files = threadData.data.leaveAttachment;
+          const attachments = files.reduce((acc, file) => {
+            acc.push(drive.getFile(file, "stream"));
+            return acc;
+          }, []);
+          form.attachment = (await Promise.allSettled(attachments))
+            .filter(({ status }) => status == "fulfilled")
+            .map(({ value }) => value);
+        }
+
+        message.send(form);
+      };
+    }
+  }
 };
