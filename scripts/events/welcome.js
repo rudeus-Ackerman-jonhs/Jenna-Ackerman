@@ -23,7 +23,7 @@ module.exports = {
       welcomeMessages: [
         // ✨ Style Johanna long vibes
         `🙍‍♂️ Salut {userName} 🌟
-Le groupe **{boxName}** est honoré de t’accueillir aujourd’hui 🍀.
+Le groupe 🍁{boxName}🍁 est honoré de t’accueillir aujourd’hui 🍀.
 Ici, c’est plus qu’un simple espace ➟ c’est une famille, un endroit où règnent respect, fun et entraide.
 ✨ Profite, partage tes vibes, et n’hésite pas à créer de bons souvenirs avec nous 💫.`,
 
