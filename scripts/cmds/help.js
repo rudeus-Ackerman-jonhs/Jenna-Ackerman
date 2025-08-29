@@ -4,7 +4,7 @@ const { commands, aliases } = global.GoatBot;
 module.exports = {
   config: {
     name: "help",
-    version: "2.0",
+    version: "3.0",
     author: "rudeus ackerman",
     countDown: 5,
     role: 0,
@@ -34,15 +34,18 @@ module.exports = {
 
       let msg = `╭════════════════╮\n│ ✨ 🌹 Itachi AI 🌹 ✨\n╰════════════════╯\n\n`;
 
-      for (const [category, cmds] of Object.entries(grouped)) {
-        msg += `🌿 ${category.charAt(0).toUpperCase() + category.slice(1)}\n`;
+      const categories = Object.entries(grouped);
+      categories.forEach(([category, cmds], idx) => {
+        msg += `       🌿 ${category.charAt(0).toUpperCase() + category.slice(1)}\n`;
         for (const c of cmds.sort()) {
           msg += `│ 🍁 ${c}\n`;
         }
-        msg += `\n`;
-      }
+        if (idx < categories.length - 1) {
+          msg += `─────────\n`;
+        }
+      });
 
-      msg += `╰───────────────╯\n`;
+      msg += `\n╰───────────────╯\n`;
       msg += `⚡ Total : ${commandsArray.length} commandes disponibles\n\n`;
       msg += `👨‍💻 Créateur : 𝗿𝘂𝗱𝗲𝘂𝘀 𝗔𝗰𝗸𝗲𝗿𝗺𝗮𝗻\n`;
       msg += `🔗 fb.com/arminackerman101`;
