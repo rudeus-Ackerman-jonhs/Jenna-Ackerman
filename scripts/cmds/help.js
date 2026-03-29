@@ -1,95 +1,147 @@
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
 
+const PAGE_SIZE = 10;
+const replyStore = new Map();
+
 module.exports = {
   config: {
     name: "help",
-    version: "3.0",
+    version: "4.0",
     author: "rudeus ackerman",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "View command usage and list all commands" },
-    longDescription: { en: "View command usage and list all commands with detailed info" },
+    shortDescription: { en: "View commands" },
+    longDescription: { en: "View commands with pagination" },
     category: "info",
-    guide: { en: "{pn} [empty | <command name>]" },
-    priority: 1
+    guide: { en: "{pn} [empty | <command name>]" }
   },
 
   onStart: async function ({ message, args, event, role }) {
-    const { threadID } = event;
+    const { threadID, senderID } = event;
     const prefix = getPrefix(threadID);
 
-    // Si aucun argument → liste complète
+    // ===== CAS 1 : LISTE =====
     if (args.length === 0) {
-      const commandsArray = Array.from(commands.values())
-        .filter(cmd => cmd.config.role <= role);
-
-      // Grouper par catégories
-      const grouped = {};
-      for (const cmd of commandsArray) {
-        const category = cmd.config.category || "Autres";
-        if (!grouped[category]) grouped[category] = [];
-        grouped[category].push(cmd.config.name);
-      }
-
-      let msg = `╭════════════════╮\n│ ✨ 🌹 Itachi AI 🌹 ✨\n╰════════════════╯\n\n`;
-
-      const categories = Object.entries(grouped);
-      categories.forEach(([category, cmds], idx) => {
-        msg += `       🌿 ${category.charAt(0).toUpperCase() + category.slice(1)}\n`;
-        for (const c of cmds.sort()) {
-          msg += `│ 🍁 ${c}\n`;
-        }
-        if (idx < categories.length - 1) {
-          msg += `─────────\n`;
-        }
-      });
-
-      msg += `\n╰───────────────╯\n`;
-      msg += `⚡ Total : ${commandsArray.length} commandes disponibles\n\n`;
-      msg += `👨‍💻 Créateur : 𝗿𝘂𝗱𝗲𝘂𝘀 𝗔𝗰𝗸𝗲𝗿𝗺𝗮𝗻\n`;
-      msg += `🔗 fb.com/arminackerman101`;
-
-      await message.reply(msg);
-      return;
+      return sendPage(message, threadID, senderID, role, 1, prefix);
     }
 
-    // Si l’utilisateur cherche une commande spécifique
+    // ===== CAS 2 : DÉTAIL COMMANDE =====
     const commandName = args[0].toLowerCase();
     const command = commands.get(commandName) || commands.get(aliases.get(commandName));
 
     if (!command) {
-      await message.reply(`𝗖𝗠𝗗 "『${commandName}』" 𝗻'𝗲𝘅𝗶𝘀𝘁𝗲 𝗽𝗮𝘀`);
-      return;
+      return message.reply(`❌ La commande "${commandName}" n'existe pas.`);
     }
 
     const cfg = command.config;
-    const roleText = roleTextToString(cfg.role);
-    const longDescription = cfg.longDescription?.en || "Aucune description";
-    const guideBody = cfg.guide?.en || "Pas de guide disponible";
-    const usage = guideBody.replace(/{pn}/g, prefix + cfg.name);
+    const usage = (cfg.guide?.en || "").replace(/{pn}/g, prefix + cfg.name);
 
-    let response = `╭════════════════╮\n│ ✨ 🌹 Itachi AI 🌹 ✨\n╰════════════════╯\n\n`;
-    response += `╭─❖ Commande : ${cfg.name}\n`;
-    response += `│ 🍁 Description : ${longDescription}\n`;
-    response += `│ 🍁 Alias : ${cfg.aliases ? cfg.aliases.join(", ") : "Aucun"}\n`;
-    response += `│ 🍁 Rôle : ${roleText}\n`;
-    response += `│ ⏱️ Cooldown : ${cfg.countDown || 1}s\n`;
-    response += `│ 🍁 Auteur : ${cfg.author || "Unknown"}\n`;
-    response += `╰────────────────╯\n\n`;
-    response += `💡 Usage : ${usage}\n\n`;
-    response += `👨‍💻 Créateur : 𝗿𝘂𝗱𝗲𝘂𝘀 𝗔𝗰𝗸𝗲𝗿𝗺𝗮𝗻\n`;
-    response += `🔗 fb.com/arminackerman101`;
+    let msg = `
+╔════════════════════╗
+   📚 CLEVER 🌹
+╚════════════════════╝
 
-    await message.reply(response);
+Hmm… tu veux creuser cette commande 😏  
+Bonne idée.
+
+╭─❖ Commande : ${cfg.name}
+│ 🍁 Description : ${cfg.longDescription?.en || "Aucune description"}
+│ 🍁 Alias : ${cfg.aliases ? cfg.aliases.join(", ") : "Aucun"}
+│ 🍁 Catégorie : ${cfg.category || "Autres"}
+│ 🍁 Accès : ${roleText(cfg.role)}
+│ ⏱️ Cooldown : ${cfg.countDown || 1}s
+│ 🍁 Auteur : ${cfg.author || "Unknown"}
+╰────────────────╯
+
+💡 Utilisation :
+➤ ${usage || prefix + cfg.name}
+
+───────────────
+Je suis curieux… tu vas tester ou juste regarder ? 😏
+`;
+
+    return message.reply(msg);
+  },
+
+  onReply: async function ({ event, message }) {
+    const data = replyStore.get(event.messageReply.messageID);
+    if (!data) return;
+
+    if (event.senderID !== data.author) return;
+
+    const page = parseInt(event.body);
+    if (isNaN(page)) return;
+
+    replyStore.delete(event.messageReply.messageID);
+
+    return sendPage(message, event.threadID, event.senderID, data.role, page, data.prefix);
   }
 };
 
-function roleTextToString(roleText) {
-  switch (roleText) {
-    case 0: return "Tous les utilisateurs";
-    case 1: return "Administrateurs de groupe";
-    case 2: return "Admin du bot";
-    default: return "Rôle inconnu";
+// ===== FONCTION PAGE =====
+async function sendPage(message, threadID, senderID, role, page, prefix) {
+  const cmds = Array.from(commands.values())
+    .filter(cmd => cmd.config.role <= role);
+
+  const totalPages = Math.ceil(cmds.length / PAGE_SIZE);
+  if (page < 1 || page > totalPages) return;
+
+  const start = (page - 1) * PAGE_SIZE;
+  const current = cmds.slice(start, start + PAGE_SIZE);
+
+  // Grouper par catégorie
+  const grouped = {};
+  for (const cmd of current) {
+    const cat = cmd.config.category || "Autres";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(cmd.config.name);
   }
+
+  let msg = `
+╔════════════════════╗
+   📚 CLEVER 🌹
+╚════════════════════╝
+
+Tu cherches à comprendre mes capacités… intéressant 😏
+`;
+
+  for (const [cat, list] of Object.entries(grouped)) {
+    msg += `\n🌿 ${capitalize(cat)}\n`;
+    for (const name of list.sort()) {
+      msg += `➤ ${name}\n`;
+    }
+  }
+
+  msg += `
+───────────────
+📜 Page ${page} / ${totalPages}
+💬 Reply "${page + 1}" pour continuer
+───────────────
+
+🧠 "Tout savoir n’est rien… savoir utiliser, c’est tout."
+`;
+
+  const sent = await message.reply(msg);
+
+  replyStore.set(sent.messageID, {
+    author: senderID,
+    page,
+    role,
+    prefix
+  });
+}
+
+// ===== UTIL =====
+function roleText(role) {
+  switch (role) {
+    case 0: return "Tous les utilisateurs";
+    case 1: return "Admins du groupe";
+    case 2: return "Admin bot";
+    default: return "Inconnu";
+  }
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
