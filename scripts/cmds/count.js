@@ -1,165 +1,137 @@
 module.exports = {
-	config: {
-		name: "count",
-		version: "1.3",
-		author: "NTKhang",
-		countDown: 5,
-		role: 0,
-		description: {
-			vi: "Xem số lượng tin nhắn của tất cả thành viên hoặc bản thân (tính từ lúc bot vào nhóm)",
-			en: "View the number of messages of all members or yourself (since the bot joined the group)"
-		},
-		category: "box chat",
-		guide: {
-			vi: "   {pn}: dùng để xem số lượng tin nhắn của bạn"
-				+ "\n   {pn} @tag: dùng để xem số lượng tin nhắn của những người được tag"
-				+ "\n   {pn} all: dùng để xem số lượng tin nhắn của tất cả thành viên",
-			en: "   {pn}: used to view the number of messages of you"
-				+ "\n   {pn} @tag: used to view the number of messages of those tagged"
-				+ "\n   {pn} all: used to view the number of messages of all members"
-		}
-	},
+    config: {
+        name: "count",
+        version: "1.4",
+        author: "CLEVER Team",
+        countDown: 5,
+        role: 0,
+        description: {
+            en: "View message counts of all members or specific users in this group."
+        },
+        category: "Stats",
+        guide: {
+            en: "{pn}: your messages\n{pn} @tag: messages of tagged members\n{pn} all: messages of all members"
+        }
+    },
 
-	langs: {
-		vi: {
-			count: "Số tin nhắn của các thành viên:",
-			endMessage: "Những người không có tên trong danh sách là chưa gửi tin nhắn nào.",
-			page: "Trang [%1/%2]",
-			reply: "Phản hồi tin nhắn này kèm số trang để xem tiếp",
-			result: "%1 hạng %2 với %3 tin nhắn",
-			yourResult: "Bạn đứng hạng %1 và đã gửi %2 tin nhắn trong nhóm này",
-			invalidPage: "Số trang không hợp lệ"
-		},
-		en: {
-			count: "Number of messages of members:",
-			endMessage: "Those who do not have a name in the list have not sent any messages.",
-			page: "Page [%1/%2]",
-			reply: "Reply to this message with the page number to view more",
-			result: "%1 rank %2 with %3 messages",
-			yourResult: "You are ranked %1 and have sent %2 messages in this group",
-			invalidPage: "Invalid page number"
-		}
-	},
+    langs: {
+        en: {
+            header: "📚 CLEVER COUNT 📚",
+            topMembers: "🌿 Top members",
+            page: "📜 Page [%1/%2]",
+            reply: '💬 Reply with the page number to see more',
+            yourResult: "You are ranked %1 with %2 messages in this group",
+            userResult: "%1 rank %2 with %3 messages",
+            noMessages: "Those without messages are not listed.",
+            invalidPage: "Invalid page number"
+        }
+    },
 
-	onStart: async function ({ args, threadsData, message, event, api, commandName, getLang }) {
-		const { threadID, senderID } = event;
-		const threadData = await threadsData.get(threadID);
-		const { members } = threadData;
-		const usersInGroup = (await api.getThreadInfo(threadID)).participantIDs;
-		let arraySort = [];
-		for (const user of members) {
-			if (!usersInGroup.includes(user.userID))
-				continue;
-			const charac = "️️️️️️️️️️️️️️️️️"; // This character is banned from facebook chat (it is not an empty string)
-			arraySort.push({
-				name: user.name.includes(charac) ? `Uid: ${user.userID}` : user.name,
-				count: user.count,
-				uid: user.userID
-			});
-		}
-		let stt = 1;
-		arraySort.sort((a, b) => b.count - a.count);
-		arraySort.map(item => item.stt = stt++);
+    onStart: async function({ args, threadsData, message, event, api, commandName, getLang }) {
+        const { threadID, senderID } = event;
+        const threadData = await threadsData.get(threadID);
+        const members = threadData.members || [];
+        const usersInGroup = (await api.getThreadInfo(threadID)).participantIDs;
 
-		if (args[0]) {
-			if (args[0].toLowerCase() == "all") {
-				let msg = getLang("count");
-				const endMessage = getLang("endMessage");
-				for (const item of arraySort) {
-					if (item.count > 0)
-						msg += `\n${item.stt}/ ${item.name}: ${item.count}`;
-				}
+        // Créer array trié par messages
+        let arraySort = [];
+        let stt = 1;
+        for (const user of members) {
+            if (!usersInGroup.includes(user.userID)) continue;
+            arraySort.push({
+                name: user.name,
+                count: user.count || 0,
+                uid: user.userID
+            });
+        }
+        arraySort.sort((a, b) => b.count - a.count);
+        arraySort = arraySort.map(u => ({ ...u, stt: stt++ }));
 
-				if ((msg + endMessage).length > 19999) {
-					msg = "";
-					let page = parseInt(args[1]);
-					if (isNaN(page))
-						page = 1;
-					const splitPage = global.utils.splitPage(arraySort, 50);
-					arraySort = splitPage.allPage[page - 1];
-					for (const item of arraySort) {
-						if (item.count > 0)
-							msg += `\n${item.stt}/ ${item.name}: ${item.count}`;
-					}
-					msg += getLang("page", page, splitPage.totalPage)
-						+ `\n${getLang("reply")}`
-						+ `\n\n${endMessage}`;
+        // Cas +count all
+        if (args[0] && args[0].toLowerCase() === "all") {
+            const perPage = 10;
+            const pages = Math.ceil(arraySort.length / perPage);
+            let page = 1;
+            if (args[1]) page = Math.min(Math.max(parseInt(args[1]), 1), pages);
 
-					return message.reply(msg, (err, info) => {
-						if (err)
-							return message.err(err);
-						global.GoatBot.onReply.set(info.messageID, {
-							commandName,
-							messageID: info.messageID,
-							splitPage,
-							author: senderID
-						});
-					});
-				}
-				message.reply(msg);
-			}
-			else if (event.mentions) {
-				let msg = "";
-				for (const id in event.mentions) {
-					const findUser = arraySort.find(item => item.uid == id);
-					msg += `\n${getLang("result", findUser.name, findUser.stt, findUser.count)}`;
-				}
-				message.reply(msg);
-			}
-		}
-		else {
-			const findUser = arraySort.find(item => item.uid == senderID);
-			return message.reply(getLang("yourResult", findUser.stt, findUser.count));
-		}
-	},
+            let msg = `╔════════════════════╗\n│       📊 CLEVER       │\n╚════════════════════╝\n\n`;
+            msg += `${getLang("topMembers")}\n\n`;
 
-	onReply: ({ message, event, Reply, commandName, getLang }) => {
-		const { senderID, body } = event;
-		const { author, splitPage } = Reply;
-		if (author != senderID)
-			return;
-		const page = parseInt(body);
-		if (isNaN(page) || page < 1 || page > splitPage.totalPage)
-			return message.reply(getLang("invalidPage"));
-		let msg = getLang("count");
-		const endMessage = getLang("endMessage");
-		const arraySort = splitPage.allPage[page - 1];
-		for (const item of arraySort) {
-			if (item.count > 0)
-				msg += `\n${item.stt}/ ${item.name}: ${item.count}`;
-		}
-		msg += getLang("page", page, splitPage.totalPage)
-			+ "\n" + getLang("reply")
-			+ "\n\n" + endMessage;
-		message.reply(msg, (err, info) => {
-			if (err)
-				return message.err(err);
-			message.unsend(Reply.messageID);
-			global.GoatBot.onReply.set(info.messageID, {
-				commandName,
-				messageID: info.messageID,
-				splitPage,
-				author: senderID
-			});
-		});
-	},
+            const start = (page - 1) * perPage;
+            const end = start + perPage;
+            arraySort.slice(start, end).forEach(u => {
+                msg += `➤ ${u.stt}/ ${u.name} : ${u.count} messages\n`;
+            });
 
-	onChat: async ({ usersData, threadsData, event }) => {
-		const { senderID, threadID } = event;
-		const members = await threadsData.get(threadID, "members");
-		const findMember = members.find(user => user.userID == senderID);
-		if (!findMember) {
-			members.push({
-				userID: senderID,
-				name: await usersData.getName(senderID),
-				nickname: null,
-				inGroup: true,
-				count: 1
-			});
-		}
-		else
-			findMember.count += 1;
-		await threadsData.set(threadID, members, "members");
-	}
+            msg += `\n───────────────\n`;
+            msg += `${getLang("page", page, pages)}\n${getLang("reply")}\n`;
+            msg += `───────────────\n\n${getLang("noMessages")}`;
 
+            return message.reply(msg, (err, info) => {
+                if (err) return message.err(err);
+                global.GoatBot.onReply.set(info.messageID, {
+                    commandName,
+                    page,
+                    perPage,
+                    arraySort,
+                    author: senderID,
+                    totalPages: pages
+                });
+            });
+        }
+
+        // Cas utilisateur spécifique ou soi-même
+        const findUser = arraySort.find(u => u.uid === senderID);
+        return message.reply(getLang("yourResult", findUser.stt, findUser.count));
+    },
+
+    onReply: ({ message, event, Reply, getLang }) => {
+        const { body, senderID } = event;
+        const { author, page, perPage, arraySort, totalPages } = Reply;
+        if (senderID !== author) return;
+
+        const nextPage = parseInt(body);
+        if (isNaN(nextPage) || nextPage < 1 || nextPage > totalPages)
+            return message.reply(getLang("invalidPage"));
+
+        let msg = `╔════════════════════╗\n│       📊 CLEVER       │\n╚════════════════════╝\n\n`;
+        msg += `${getLang("topMembers")}\n\n`;
+
+        const start = (nextPage - 1) * perPage;
+        const end = start + perPage;
+        arraySort.slice(start, end).forEach(u => {
+            msg += `➤ ${u.stt}/ ${u.name} : ${u.count} messages\n`;
+        });
+
+        msg += `\n───────────────\n`;
+        msg += `${getLang("page", nextPage, totalPages)}\n${getLang("reply")}\n`;
+        msg += `───────────────\n\n${getLang("noMessages")}`;
+
+        message.reply(msg, (err, info) => {
+            if (err) return message.err(err);
+            message.unsend(Reply.messageID);
+            global.GoatBot.onReply.set(info.messageID, {
+                commandName: Reply.commandName,
+                page: nextPage,
+                perPage,
+                arraySort,
+                author: senderID,
+                totalPages
+            });
+        });
+    },
+
+    onChat: async ({ usersData, threadsData, event }) => {
+        const { senderID, threadID } = event;
+        const members = await threadsData.get(threadID, "members") || [];
+        const findMember = members.find(u => u.userID === senderID);
+
+        if (!findMember) {
+            members.push({ userID: senderID, name: await usersData.getName(senderID), count: 1 });
+        } else {
+            findMember.count = (findMember.count || 0) + 1;
+        }
+
+        await threadsData.set(threadID, members, "members");
+    }
 };
